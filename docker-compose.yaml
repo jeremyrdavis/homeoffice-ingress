@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+
+  homeoffice-db:
+    image: debezium/postgres:latest
+    ports:
+      - 5433:5432
+    healthcheck:
+      test: "pg_isready -U homeofficeuser -d homeofficedb"
+      interval: 2s
+      timeout: 20s
+      retries: 10
+    environment:
+      - POSTGRES_USER=homeofficeuser
+      - POSTGRES_PASSWORD=redhat-20
+      - POSTGRES_DB=homeofficedb
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
