@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # quarkuscoffeeshop-homeoffice project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
@@ -55,3 +56,6 @@ Guide: https://quarkus.io/guides/rest-json
 <p><b>Quarked!</b></p>
 
 Guide: https://quarkus.io/guides/rest-json
+=======
+# homeoffice-ingress
+>>>>>>> refs/remotes/origin/master
