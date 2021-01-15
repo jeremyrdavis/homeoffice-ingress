@@ -11,7 +11,10 @@ import java.util.concurrent.CompletionStage;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkuscoffeeshop.homeoffice.domain.Order;
 import io.smallrye.reactive.messaging.kafka.KafkaRecord;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -23,6 +26,8 @@ import org.slf4j.LoggerFactory;
 public class KafkaEventConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEventConsumer.class);
+
+    final ObjectMapper objectMapper = new ObjectMapper();
 
     @Inject
     OrderEventHandler orderEventHandler;
@@ -37,6 +42,11 @@ public class KafkaEventConsumer {
             String eventId = getHeaderAsString(message, "id");
             String eventType = getHeaderAsString(message, "eventType");
 
+            switch (eventType) {
+                case "OrderUpdate":
+                    onOrderUpdate(message.getPayload());
+            }
+
             orderEventHandler.onOrderEvent(
                     UUID.fromString(eventId),
                     eventType,
@@ -48,6 +58,16 @@ public class KafkaEventConsumer {
 
         }).thenRun(message::ack);
 
+    }
+
+    private void onOrderUpdate(String payload) {
+
+        try {
+            Order order = objectMapper.readValue(payload, Order.class);
+            order.persist();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 
     private String getHeaderAsString(KafkaRecord<?, ?> record, String name) {
