@@ -27,7 +27,7 @@ public class KafkaEventConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEventConsumer.class);
 
-    final ObjectMapper objectMapper = new ObjectMapper();
+
 
     @Inject
     OrderEventHandler orderEventHandler;
@@ -36,16 +36,13 @@ public class KafkaEventConsumer {
     public CompletionStage<Void> onMessage(KafkaRecord<String, String> message) throws IOException {
         return CompletableFuture.runAsync(() -> {
 
-            LOG.debug("Kafka message with key = {} arrived", message.getKey());
+            //LOG.debug("Kafka message with key = {} arrived", message.getKey());
             LOG.debug("message received: {}", message.getPayload());
 
             String eventId = getHeaderAsString(message, "id");
             String eventType = getHeaderAsString(message, "eventType");
 
-            switch (eventType) {
-                case "OrderUpdate":
-                    onOrderUpdate(message.getPayload());
-            }
+            LOG.debug("EventType is: {}",eventType);
 
             orderEventHandler.onOrderEvent(
                     UUID.fromString(eventId),
@@ -60,15 +57,33 @@ public class KafkaEventConsumer {
 
     }
 
-    private void onOrderUpdate(String payload) {
 
-        try {
-            Order order = objectMapper.readValue(payload, Order.class);
-            order.persist();
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-    }
+//    public CompletionStage<Void> onMessage(KafkaRecord<String, String> message) throws IOException {
+//        return CompletableFuture.runAsync(() -> {
+//
+//            //LOG.debug("Kafka message with key = {} arrived", message.getKey());
+//            LOG.debug("message received: {}", message.getPayload());
+//
+//            String eventId = getHeaderAsString(message, "id");
+//            String eventType = getHeaderAsString(message, "eventType");
+//
+//            LOG.debug("EventType is: {}",eventType);
+//
+//
+//            orderEventHandler.onOrderEvent(
+//                    UUID.fromString(eventId),
+//                    eventType,
+//                    message.getKey(),
+//                    message.getPayload(),
+//                    message.getTimestamp()
+//            );
+//
+//
+//        }).thenRun(message::ack);
+//
+//    }
+
+
 
     private String getHeaderAsString(KafkaRecord<?, ?> record, String name) {
         Header header = record.getHeaders().lastHeader(name);

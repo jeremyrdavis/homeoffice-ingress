@@ -1,7 +1,9 @@
 package io.quarkuscoffeeshop.homeoffice.infrastructure;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkuscoffeeshop.homeoffice.domain.Order;
 import io.quarkuscoffeeshop.homeoffice.messagelog.MessageLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,22 +29,36 @@ public class OrderEventHandler {
 
     @Transactional
     public void onOrderEvent(UUID eventId, String eventType, String key, String event, Instant ts) {
-
-        LOG.info("Received 'Order' event -- key: {}, event id: '{}', event type: '{}', ts: '{}'", key, eventId, eventType, ts);
+//        if (log.alreadyProcessed(eventId)) {
+//            LOG.info("Event with UUID {} was already retrieved, ignoring it", eventId);
+//            return;
+//        }
 
         JsonNode eventPayload = deserialize(event);
 
-        if (eventType.equals("OrderCreated")) {
-            orderService.orderCreated(eventPayload);
+        LOG.info("Received 'Order' event -- key: {}, event id: '{}', event type: '{}', ts: '{}'", key, eventId, eventType, ts);
+
+        switch (eventType) {
+            case "OrderCreated":
+                orderService.orderCreated(eventPayload);
+                break;
+            case "OrderUpdated" :
+                LOG.info("OrderUpdated event received");
+                break;
+
+            case "LoyaltyMemberPurchaseEvent" :
+                LOG.info("LoyaltyMemberPurchaseEvent event received");
+                break;
+
+            default :
+                LOG.info("Unrecognized event received");
+                break;
         }
-        else {
-            LOG.info("we got a LoyaltyMemberPurchaseEvent!");
-        }
+//        log.processed(eventId);
     }
 
     private JsonNode deserialize(String event) {
         JsonNode eventPayload;
-        LOG.info("event: {}", event);
 
         try {
             //String unescaped = objectMapper.readValue(event, String.class);
@@ -54,4 +70,6 @@ public class OrderEventHandler {
 
         return eventPayload.has("schema") ? eventPayload.get("payload") : eventPayload;
     }
+
+
 }
