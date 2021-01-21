@@ -17,11 +17,10 @@ public class OrderPersistenceTest {
 
     Logger logger = LoggerFactory.getLogger(OrderPersistenceTest.class);
 
-
     @Test @Transactional
     public void testOrderPersistence() {
         Order order = new Order(
-                "fa280ea4-1b92-4f26-8df4-3b11d38e38dd",
+                "ja280ea4-1b92-4f26-8df4-3b11d38e38dd",
                 "WEB",
                 Instant.now(),
                 Optional.empty(),

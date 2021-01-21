@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkuscoffeeshop.homeoffice.domain.EventType;
 import io.quarkuscoffeeshop.homeoffice.domain.Order;
+import io.smallrye.reactive.messaging.annotations.Blocking;
 import io.smallrye.reactive.messaging.kafka.KafkaRecord;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -38,10 +39,9 @@ public class KafkaEventConsumer {
     }
 
 
-    @Incoming("orders") @Transactional
+    @Incoming("orders")
+    @Transactional
     public CompletionStage<Void> onMessage(KafkaRecord<String, String> message) throws IOException {
-
-        return CompletableFuture.runAsync(() -> {
 
             //LOG.debug("Kafka message with key = {} arrived", message.getKey());
             LOG.debug("message received: {}", message.getPayload());
@@ -53,16 +53,18 @@ public class KafkaEventConsumer {
 
             LOG.debug("Payload: {}", message.getPayload());
 
-            try {
-                Order order = objectMapper.readValue(message.getPayload(), Order.class);
-                LOG.debug("order: {}", order);
-                orderService.onEventReceived(eventType, order);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        })
-        .thenRun(message::ack);
+            return CompletableFuture.runAsync(()->{
 
+                try {
+                    Order order = objectMapper.readValue(message.getPayload(), Order.class);
+                    LOG.debug("order: {}", order);
+                    orderService.onEventReceived(eventType, order);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            }).thenRun(
+                    message::ack
+            );
     }
 
 //    public CompletionStage<Void> onMessage(KafkaRecord<String, String> message) throws IOException {

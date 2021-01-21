@@ -115,4 +115,16 @@ public class Order extends PanacheEntityBase {
     public Instant getTimestamp() {
         return timestamp;
     }
+
+    public void setBaristaLineItems(List<LineItem> baristaLineItems) {
+        baristaLineItems.forEach(baristaLineItem -> {
+            addBaristaLineItem(baristaLineItem);
+        });
+    }
+
+    public void setKitchenLineItems(List<LineItem> kitchenLineItems) {
+        kitchenLineItems.forEach(kitchenLineItem -> {
+            addKitchenLineItem(kitchenLineItem);
+        });
+    }
 }
