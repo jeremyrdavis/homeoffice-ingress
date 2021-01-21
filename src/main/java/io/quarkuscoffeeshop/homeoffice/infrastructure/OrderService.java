@@ -1,6 +1,7 @@
 package io.quarkuscoffeeshop.homeoffice.infrastructure;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.quarkuscoffeeshop.homeoffice.domain.EventType;
 import io.quarkuscoffeeshop.homeoffice.domain.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,11 @@ public class OrderService {
 
     @PersistenceContext
     EntityManager entityManager;
+
+    @Transactional
+    public void onEventReceived(EventType eventType, Order order) {
+        LOGGER.debug("processing EventType {} for Order {}", eventType, order);
+    }
 
     @Transactional
     public void orderCreated(JsonNode event) {

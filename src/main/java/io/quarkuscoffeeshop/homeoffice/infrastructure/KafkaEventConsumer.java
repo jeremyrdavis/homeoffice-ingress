@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.quarkuscoffeeshop.homeoffice.domain.EventType;
 import io.quarkuscoffeeshop.homeoffice.domain.Order;
 import io.smallrye.reactive.messaging.kafka.KafkaRecord;
 import org.apache.kafka.common.header.Header;
@@ -29,7 +30,7 @@ public class KafkaEventConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaEventConsumer.class);
 
     @Inject
-    OrderEventHandler orderEventHandler;
+    OrderService orderService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -47,7 +48,7 @@ public class KafkaEventConsumer {
             LOG.debug("message received: {}", message.getPayload());
 
             String eventId = getHeaderAsString(message, "id");
-            String eventType = getHeaderAsString(message, "eventType");
+            EventType eventType = EventType.valueOf(getHeaderAsString(message, "eventType"));
 
             LOG.debug("EventType is: {}", eventType);
 
@@ -56,6 +57,7 @@ public class KafkaEventConsumer {
             try {
                 Order order = objectMapper.readValue(message.getPayload(), Order.class);
                 LOG.debug("order: {}", order);
+                orderService.onEventReceived(eventType, order);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
