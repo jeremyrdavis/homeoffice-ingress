@@ -21,12 +21,37 @@ public class OrderService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
 
-    @PersistenceContext
-    EntityManager entityManager;
-
     @Transactional
     public void onEventReceived(EventType eventType, Order order) {
         LOGGER.debug("processing EventType {} for Order {}", eventType, order);
+        switch (eventType) {
+            case OrderCreated:
+                onOrderCreated(order);
+                break;
+            case OrderUpdated:
+                onOrderUpdated(order);
+                break;
+            case LoyaltyMemberPurchase:
+                onLoyaltyMemberPurchase(order);
+                break;
+            default:
+                LOGGER.error("Cannot determine appropriate action for {}", eventType);
+                order.persist();
+        }
+    }
+
+    void onOrderCreated(final Order order) {
+        order.persist();
+        LOGGER.debug("Order persisted: {}", order);
+    }
+
+    void onOrderUpdated(final Order order){
+        order.persist();
+        LOGGER.debug("Order persisted: {}", order);
+    }
+
+    void onLoyaltyMemberPurchase(final Order order) {
+        LOGGER.debug("What to do with a LoyaltyMemberPurchaseEvent? {}", order);
     }
 
     @Transactional

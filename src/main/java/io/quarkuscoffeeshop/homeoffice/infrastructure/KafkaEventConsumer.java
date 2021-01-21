@@ -2,7 +2,6 @@ package io.quarkuscoffeeshop.homeoffice.infrastructure;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkuscoffeeshop.homeoffice.domain.EventType;
@@ -16,10 +15,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -40,8 +38,9 @@ public class KafkaEventConsumer {
     }
 
 
-    @Incoming("orders")
+    @Incoming("orders") @Transactional
     public CompletionStage<Void> onMessage(KafkaRecord<String, String> message) throws IOException {
+
         return CompletableFuture.runAsync(() -> {
 
             //LOG.debug("Kafka message with key = {} arrived", message.getKey());
@@ -61,59 +60,10 @@ public class KafkaEventConsumer {
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
-/*
-            JsonNode eventPayload = deserialize(message.getPayload());
-            LOG.debug("eventPayload: {}", eventPayload);
-
-            LOG.info("Received 'Order' event -- key: {}, event id: '{}', event type: '{}', ts: '{}'", UUID.fromString(eventId), eventId, eventType, Instant.now());
-
-            switch (eventType) {
-                case "OrderCreated":
-                    LOG.info("OrderCreated event received");
-                    //orderService.orderCreated(eventPayload);
-                    break;
-                case "OrderUpdated" :
-                    LOG.info("OrderUpdated event received");
-                    break;
-
-                case "LoyaltyMemberPurchaseEvent" :
-                    LOG.info("LoyaltyMemberPurchaseEvent event received");
-                    break;
-
-                default :
-                    LOG.info("Unrecognized event received");
-                    break;
-            }
-
-            orderEventHandler.onOrderEvent(
-                    UUID.fromString(eventId),
-                    eventType,
-                    message.getKey(),
-                    message.getPayload(),
-                    message.getTimestamp()
-            );
-*/
-
-
-        }).thenRun(message::ack);
+        })
+        .thenRun(message::ack);
 
     }
-
-    private JsonNode deserialize(String event) {
-        JsonNode eventPayload;
-
-        try {
-            //String unescaped = objectMapper.readValue(event, String.class);
-            eventPayload = objectMapper.readTree(event);
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Couldn't deserialize event", e);
-        }
-
-        return eventPayload.has("schema") ? eventPayload.get("payload") : eventPayload;
-    }
-
-
 
 //    public CompletionStage<Void> onMessage(KafkaRecord<String, String> message) throws IOException {
 //        return CompletableFuture.runAsync(() -> {

@@ -78,7 +78,7 @@ public class Order extends PanacheEntityBase {
         if (this.baristaLineItems == null) {
             this.baristaLineItems = new ArrayList<>();
         }
-        this.baristaLineItems.add(lineItem);
+        this.baristaLineItems.add(new LineItem(lineItem.getItem(), lineItem.getName(), this));
     }
 
     /**
@@ -89,7 +89,7 @@ public class Order extends PanacheEntityBase {
         if (this.kitchenLineItems == null) {
             this.kitchenLineItems = new ArrayList<>();
         }
-        this.kitchenLineItems.add(lineItem);
+        this.kitchenLineItems.add(new LineItem(lineItem.getItem(), lineItem.getName(), this));
     }
 
     public Optional<List<LineItem>> getBaristaLineItems() {

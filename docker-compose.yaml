@@ -5,7 +5,7 @@ services:
   homeoffice-db:
     image: debezium/postgres:latest
     ports:
-      - 5433:5432
+      - 5432:5432
     healthcheck:
       test: "pg_isready -U homeofficeuser -d homeofficedb"
       interval: 2s
@@ -17,6 +17,19 @@ services:
       - POSTGRES_DB=homeofficedb
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - my-network
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
     networks:
       - my-network
 
