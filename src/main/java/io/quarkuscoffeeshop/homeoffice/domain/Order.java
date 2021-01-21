@@ -1,14 +1,15 @@
 package io.quarkuscoffeeshop.homeoffice.domain;
 
-
-
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 @Entity
 @Table(name = "Orders")
@@ -25,78 +26,93 @@ public class Order extends PanacheEntityBase {
 
     public String loyaltyMemberId;
 
-    public LocalDateTime timestamp;
+    public Instant timestamp;
 
-//    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL)
-//    private List<LineItem> baristaLineItems;
-//
-//    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL)
-//    private List<LineItem> kitchenLineItems;
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL)
+    private List<LineItem> baristaLineItems;
 
-//    /**
-//     * Convenience method to prevent Null Pointer Exceptions
-//     * @param lineItem
-//     */
-//    public void addBaristaLineItem(final LineItem lineItem) {
-//        if (this.baristaLineItems == null) {
-//            this.baristaLineItems = new ArrayList<>();
-//        }
-//        this.baristaLineItems.add(lineItem);
-//    }
-//
-//    /**
-//     * Convenience method to prevent Null Pointer Exceptions
-//     * @param lineItem
-//     */
-//    public void addKitchenLineItem(final LineItem lineItem) {
-//        if (this.kitchenLineItems == null) {
-//            this.kitchenLineItems = new ArrayList<>();
-//        }
-//        this.kitchenLineItems.add(lineItem);
-//    }
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL)
+    private List<LineItem> kitchenLineItems;
 
-//    public Optional<List<LineItem>> getBaristaLineItems() {
-//        return Optional.ofNullable(baristaLineItems);
-//    }
-//
-//    public Optional<List<LineItem>> getKitchenLineItems() {
-//        return Optional.ofNullable(kitchenLineItems);
-//    }
-
-//    public Optional<String> getLoyaltyMemberId() {
-//        return Optional.ofNullable(this.loyaltyMemberId);
-//    }
-//
-//    public void setLoyaltyMemberId(String loyaltyMemberId) {
-//        this.loyaltyMemberId = loyaltyMemberId;
-//    }
-//
-//    public String getOrderId() {
-//        return orderId;
-//    }
-//
-//    public void setOrderId(String orderId) {
-//        this.orderId = orderId;
-//    }
-//
-//    public String getOrderSource() {
-//        return orderSource;
-//    }
-//
-//    public void setOrderSource(String orderSource) {
-//        this.orderSource = orderSource;
-//    }
-//
-//    public LocalDateTime getTimestamp() {
-//        return timestamp;
-//    }
-//
-//    public void setTimestamp(LocalDateTime timestamp) {
-//        this.timestamp = timestamp;
-//    }
-
-    public Order() {
-
+    public Order(final String orderId, final String orderSource, final Instant instant, final Optional<String> loyaltyMemberId, Optional<List<LineItem>> baristaLineItems, Optional<List<LineItem>> kitchenLineItems) {
+        this.orderId = orderId;
+        this.orderSource = orderSource;
+        this.timestamp = instant;
+        if (loyaltyMemberId.isPresent()) {
+            this.loyaltyMemberId = loyaltyMemberId.get();
+        }else{
+            this.loyaltyMemberId = null;
+        }
+        if (baristaLineItems.isPresent()) {
+            baristaLineItems.get().forEach(baristaLineItem -> {
+                addBaristaLineItem(new LineItem(baristaLineItem.getItem(), baristaLineItem.getName(), this));
+            });
+        }
+        if (kitchenLineItems.isPresent()) {
+            baristaLineItems.get().forEach(kitchenLineItem -> {
+                addKitchenLineItem(new LineItem(kitchenLineItem.getItem(), kitchenLineItem.getName(), this));
+            });
+        }
     }
 
+    public Order() {
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", Order.class.getSimpleName() + "[", "]")
+                .add("orderId='" + orderId + "'")
+                .add("orderSource='" + orderSource + "'")
+                .add("loyaltyMemberId='" + loyaltyMemberId + "'")
+                .add("timestamp=" + timestamp)
+                .add("baristaLineItems=" + baristaLineItems)
+                .add("kitchenLineItems=" + kitchenLineItems)
+                .toString();
+    }
+
+    /**
+     * Convenience method to prevent Null Pointer Exceptions
+     * @param lineItem
+     */
+    public void addBaristaLineItem(final LineItem lineItem) {
+        if (this.baristaLineItems == null) {
+            this.baristaLineItems = new ArrayList<>();
+        }
+        this.baristaLineItems.add(lineItem);
+    }
+
+    /**
+     * Convenience method to prevent Null Pointer Exceptions
+     * @param lineItem
+     */
+    public void addKitchenLineItem(final LineItem lineItem) {
+        if (this.kitchenLineItems == null) {
+            this.kitchenLineItems = new ArrayList<>();
+        }
+        this.kitchenLineItems.add(lineItem);
+    }
+
+    public Optional<List<LineItem>> getBaristaLineItems() {
+        return Optional.ofNullable(baristaLineItems);
+    }
+
+    public Optional<List<LineItem>> getKitchenLineItems() {
+        return Optional.ofNullable(kitchenLineItems);
+    }
+
+    public Optional<String> getLoyaltyMemberId() {
+        return Optional.ofNullable(this.loyaltyMemberId);
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public String getOrderSource() {
+        return orderSource;
+    }
+
+    public Instant getTimestamp() {
+        return timestamp;
+    }
 }

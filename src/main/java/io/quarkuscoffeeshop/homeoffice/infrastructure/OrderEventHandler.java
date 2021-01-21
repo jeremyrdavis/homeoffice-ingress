@@ -40,6 +40,7 @@ public class OrderEventHandler {
 
         switch (eventType) {
             case "OrderCreated":
+                LOG.info("OrderCreated event received");
                 orderService.orderCreated(eventPayload);
                 break;
             case "OrderUpdated" :

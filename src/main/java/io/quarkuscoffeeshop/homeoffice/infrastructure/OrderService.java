@@ -27,14 +27,14 @@ public class OrderService {
     public void orderCreated(JsonNode event) {
 
 
-        Order order = new Order();
-        order.orderId = event.get("orderId").asText();
-        order.orderSource = event.get("orderSource").asText();
-        order.timestamp = LocalDateTime.parse(event.get("timestamp").asText());
-        order.loyaltyMemberId = event.get("loyaltyMemberId").asText();
-        LOGGER.info("orderId: {}", order.orderId);
-        entityManager.persist(order);
-
-        LOGGER.info("Processed 'OrderCreated' event: {}", event);
+//        Order order = new Order();
+//        order.orderId = event.get("orderId").asText();
+//        order.orderSource = event.get("orderSource").asText();
+//        order.timestamp = LocalDateTime.parse(event.get("timestamp").asText());
+//        order.loyaltyMemberId = event.get("loyaltyMemberId").asText();
+//        LOGGER.info("orderId: {}", order.orderId);
+//        entityManager.persist(order);
+//
+//        LOGGER.info("Processed 'OrderCreated' event: {}", event);
     }
 }
