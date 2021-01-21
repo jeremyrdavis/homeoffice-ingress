@@ -51,7 +51,7 @@ public class OrderService {
     }
 
     void onLoyaltyMemberPurchase(final Order order) {
-        LOGGER.debug("What to do with a LoyaltyMemberPurchaseEvent? {}", order);
+        LOGGER.debug("Persisted and sent {}", order);
     }
 
     @Transactional
