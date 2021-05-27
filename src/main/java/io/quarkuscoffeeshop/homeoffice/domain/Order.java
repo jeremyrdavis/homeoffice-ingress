@@ -1,42 +1,42 @@
 package io.quarkuscoffeeshop.homeoffice.domain;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.*;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
 
-@Entity
-@Table(name = "Orders")
-public class Order extends PanacheEntityBase {
 
-    @Transient
+public class Order {
+
     static Logger logger = LoggerFactory.getLogger(Order.class);
 
-    @Id
-    @Column(nullable = false, name = "orderId")
+
     public String orderId;
 
     public String orderSource;
+
+    public EventType eventType;
 
     public String loyaltyMemberId;
 
     public Instant timestamp;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL)
+
     private List<LineItem> baristaLineItems;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL)
+
     private List<LineItem> kitchenLineItems;
 
-    public Order(final String orderId, final String orderSource, final Instant instant, final Optional<String> loyaltyMemberId, Optional<List<LineItem>> baristaLineItems, Optional<List<LineItem>> kitchenLineItems) {
+    public Order(final String orderId, final String orderSource, final EventType eventType, final Instant instant, final Optional<String> loyaltyMemberId, Optional<List<LineItem>> baristaLineItems, Optional<List<LineItem>> kitchenLineItems) {
         this.orderId = orderId;
         this.orderSource = orderSource;
+        this.eventType = eventType;
         this.timestamp = instant;
         if (loyaltyMemberId.isPresent()) {
             this.loyaltyMemberId = loyaltyMemberId.get();
@@ -63,6 +63,7 @@ public class Order extends PanacheEntityBase {
         return new StringJoiner(", ", Order.class.getSimpleName() + "[", "]")
                 .add("orderId='" + orderId + "'")
                 .add("orderSource='" + orderSource + "'")
+                .add("eventType='" + eventType + "'")
                 .add("loyaltyMemberId='" + loyaltyMemberId + "'")
                 .add("timestamp=" + timestamp)
                 .add("baristaLineItems=" + baristaLineItems)
@@ -110,6 +111,10 @@ public class Order extends PanacheEntityBase {
 
     public String getOrderSource() {
         return orderSource;
+    }
+
+    public EventType getEventType() {
+        return eventType;
     }
 
     public Instant getTimestamp() {

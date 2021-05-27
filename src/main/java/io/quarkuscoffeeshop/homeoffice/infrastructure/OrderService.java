@@ -1,71 +1,73 @@
 package io.quarkuscoffeeshop.homeoffice.infrastructure;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.quarkuscoffeeshop.homeoffice.domain.EventType;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkuscoffeeshop.homeoffice.domain.Order;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.enterprise.context.ApplicationScoped;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.List;
+import javax.inject.Inject;
 
-import static javax.transaction.Transactional.TxType;
+import java.util.concurrent.CompletableFuture;
 
+import static io.quarkuscoffeeshop.homeoffice.infrastructure.JsonUtil.toJson;
 
+@RegisterForReflection
 @ApplicationScoped
 public class OrderService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
+    Logger logger = LoggerFactory.getLogger(OrderService.class);
 
-    @Transactional
-    public void onEventReceived(EventType eventType, Order order) {
-        LOGGER.debug("processing EventType {} for Order {}", eventType, order);
-        switch (eventType) {
-            case OrderCreated:
-                onOrderCreated(order);
-                break;
-            case OrderUpdated:
-                onOrderUpdated(order);
-                break;
-            case LoyaltyMemberPurchase:
-                onLoyaltyMemberPurchase(order);
-                break;
-            default:
-                LOGGER.error("Cannot determine appropriate action for {}", eventType);
-                order.persist();
-        }
+    @Inject
+    @Channel("orders-created")
+    Emitter<String> ordersCreatedEmitter;
+
+    @Inject
+    @Channel("orders-updated")
+    Emitter<String> ordersUpdatedEmitter;
+
+    @Inject
+    @Channel("loyalty-member-purchase")
+    Emitter<String> loyaltyMemberPurchaseEmitter;
+
+    public CompletableFuture<Void> addOrderCreated(final Order order) {
+        logger.debug("eventType: {}", order.getEventType());
+        logger.debug("Order: {}", order);
+
+        return ordersCreatedEmitter.send(toJson(order))
+                .whenComplete((result, ex) -> {
+                    logger.debug("order added: {}", order);
+                    if (ex != null) {
+                        logger.error(ex.getMessage());
+                    }
+                }).toCompletableFuture();
     }
 
-    void onOrderCreated(final Order order) {
-        order.persist();
-        LOGGER.debug("Order persisted: {}", order);
+
+    public CompletableFuture<Void> addOrderUpdated(final Order order) {
+        logger.debug("eventType: {}", order.getEventType());
+        logger.debug("Order: {}", order);
+
+        return ordersUpdatedEmitter.send(toJson(order))
+                .whenComplete((result, ex) -> {
+                    logger.debug("order updated: {}", order);
+                    if (ex != null) {
+                        logger.error(ex.getMessage());
+                    }
+                }).toCompletableFuture();
     }
 
-    void onOrderUpdated(final Order order){
-        order.persist();
-        LOGGER.debug("Order persisted: {}", order);
-    }
+    public CompletableFuture<Void> addLoyaltyMemberPurchase(final Order order) {
+        logger.debug("eventType: {}", order.getEventType());
+        logger.debug("Order: {}", order);
 
-    void onLoyaltyMemberPurchase(final Order order) {
-        LOGGER.debug("Persisted and sent {}", order);
-    }
-
-    @Transactional
-    public void orderCreated(JsonNode event) {
-
-
-//        Order order = new Order();
-//        order.orderId = event.get("orderId").asText();
-//        order.orderSource = event.get("orderSource").asText();
-//        order.timestamp = LocalDateTime.parse(event.get("timestamp").asText());
-//        order.loyaltyMemberId = event.get("loyaltyMemberId").asText();
-//        LOGGER.info("orderId: {}", order.orderId);
-//        entityManager.persist(order);
-//
-//        LOGGER.info("Processed 'OrderCreated' event: {}", event);
+        return loyaltyMemberPurchaseEmitter.send(toJson(order))
+                .whenComplete((result, ex) -> {
+                    logger.debug("loyalty member purchase added: {}", order);
+                    if (ex != null) {
+                        logger.error(ex.getMessage());
+                    }
+                }).toCompletableFuture();
     }
 }

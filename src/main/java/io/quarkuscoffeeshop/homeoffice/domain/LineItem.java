@@ -1,23 +1,18 @@
 package io.quarkuscoffeeshop.homeoffice.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
-import javax.persistence.*;
+
 import java.util.StringJoiner;
 
-@Entity
-@Table(name = "LineItems")
-public class LineItem extends PanacheEntity {
 
-    @Enumerated(EnumType.STRING)
+public class LineItem {
+
     private Item item;
 
     private String name;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="orderId",nullable = false)
     Order order;
 
     public LineItem() {
