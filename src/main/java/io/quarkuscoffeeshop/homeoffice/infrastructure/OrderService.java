@@ -34,6 +34,7 @@ public class OrderService {
     public CompletableFuture<Void> addOrderCreated(final Order order) {
         logger.debug("eventType: {}", order.getEventType());
         logger.debug("Order: {}", order);
+        logger.debug("Sending json: {}", toJson(order));
 
         return ordersCreatedEmitter.send(toJson(order))
                 .whenComplete((result, ex) -> {
